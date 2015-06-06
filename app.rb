@@ -3,10 +3,16 @@ Bundler.require
 
 post '/translate' do
   tempfile = params['image'][:tempfile].read
-  image = Magick::Image.from_blob(tempfile).first
-  bw = image.black_threshold(29000, 29000, 29000)
-  bw = bw.white_threshold(29000, 29000, 29000)
+  binarized_image = ImageBinarizer.perform(tempfile)
+  RTesseract.new(binarized_image).to_s
+end
 
-  ticket = RTesseract.new(bw)
-  ticket.to_s
+class ImageBinarizer
+  THRESHOLD = 29000
+
+  def self.perform tempfile
+    image = Magick::Image.from_blob(tempfile).first
+    binarized = image.black_threshold(THRESHOLD)
+    binarized.white_threshold(THRESHOLD)
+  end
 end
